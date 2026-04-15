@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        PATH            = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
         AWS_REGION      = 'us-east-1'
         ECR_REPO        = 'genai-app'
         CLUSTER_NAME    = 'genai-eks-cluster'
@@ -17,9 +18,23 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
+        stage('Verify Tools') {
             steps {
-                checkout scm
+                sh '''
+                    echo "Checking tools..."
+
+                    which aws || echo "AWS not found"
+                    aws --version || true
+
+                    which docker || echo "Docker not found"
+                    docker --version || true
+
+                    which kubectl || echo "kubectl not found"
+                    kubectl version --client || true
+
+                    which helm || echo "Helm not found"
+                    helm version || true
+                '''
             }
         }
 
